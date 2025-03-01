@@ -1,5 +1,6 @@
 import requests
 from prettytable import PrettyTable
+import pandas as pd
 
  
 class Jdcomment_spider(object):
@@ -10,20 +11,11 @@ class Jdcomment_spider(object):
     }
  
     def __init__(self, file_name='jd_commet'):
-        
-         
-
-        # 实例化类的时候运行初始化函数
-        # 打开文件
-        self.fp = open(f'./{file_name}.txt', 'w', encoding='utf-8')
+        self.file_name = file_name
         self.all_comments = []  # 用于存储所有评论数据
-        print(f'正在打开文件{file_name}.txt文件!')
- 
  
     def parse_one_page(self, url):
         # 指定url
-        url = 'https://club.jd.com/comment/productPageComments.action?productId=10079932124329&score=0&sortType=5&page=0&pageSize=10&isShadowSku=0&rid=0&fold=1'
- 
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
         }
@@ -68,6 +60,7 @@ class Jdcomment_spider(object):
  
  
     def parse_max_page(self):
+        all_data = []
         table = PrettyTable()
         table.field_names = ["商品id", "用户昵称", "评分", "商品尺寸", "商品颜色", "评论时间", "评论内容"]
         for page_num in range(500):  # 抓包获得最大页数
@@ -83,17 +76,19 @@ class Jdcomment_spider(object):
         for row in self.all_comments:
             table.add_row(row)
 
-        # 打印表格
+        for row in self.all_comments:
+            table.add_row(row)
+            all_data.append(row)
+
         print(table)
 
-        # 保存到文件
-        with open('output.txt', 'w', encoding='utf-8') as fp:
-            fp.write(table.get_string())
-
+        # 保存为 Excel 文件
+        df = pd.DataFrame(all_data, columns=["商品id", "用户昵称", "评分", "商品尺寸", "商品颜色", "评论时间", "评论内容"])
+        df.to_excel(f'{self.file_name}.xlsx', index=False)
+        print(f'数据已保存为 {self.file_name}.xlsx 文件!')
  
  
     def close_files(self):
-        self.fp.close()
         print('爬虫结束，关闭文件！')
  
  
